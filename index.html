@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tu llavero</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="description" content="Caso de estudio de Tu llavero, la app que guarda el expediente de un piso de alquiler para inquilinos y pequeños propietarios.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Maqueta: columna de lectura con bandas a lo ancho; las capturas van en marcos de móvil.
+   Colores y letras salen de diseno/sistema-de-diseno/tokens.json. */
+:root {
+  --bg: #FBF7F1; --surface: #FFFFFF; --sunken: #F4EEE5; --ink: #22201C; --ink-2: #4A443B; --muted: #6B6358;
+  --border: #ECE3D6; --primary: #1E4D3A; --on-primary: #FFFFFF; --primary-tint: #E6EFE9;
+  --accent: #A8432A; --tenant: #8A4B14; --tenant-tint: #F6E9D9; --warning-tint: #F8E5DC; --frame: #22201C;
+  --band: #1E4D3A; --band-ink: #FBF7F1; --band-muted: #C9DCD0;
+  --font-display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: Figtree, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-sm: 14px; --r-md: 16px; --r-lg: 20px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #161412; --surface: #201D19; --sunken: #1B1815; --ink: #F3EEE6; --ink-2: #D8D0C4; --muted: #A9A094;
+  --border: #353029; --primary: #8FC8A8; --on-primary: #10241A; --primary-tint: #1F3329;
+  --accent: #F2A48A; --tenant: #E3B07A; --tenant-tint: #3A2A18; --warning-tint: #3D2219; --frame: #3A352E;
+  --band: #1F3329; --band-ink: #F3EEE6; --band-muted: #A9C4B3; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #161412; --surface: #201D19; --sunken: #1B1815; --ink: #F3EEE6; --ink-2: #D8D0C4; --muted: #A9A094;
+  --border: #353029; --primary: #8FC8A8; --on-primary: #10241A; --primary-tint: #1F3329;
+  --accent: #F2A48A; --tenant: #E3B07A; --tenant-tint: #3A2A18; --warning-tint: #3D2219; --frame: #3A352E;
+  --band: #1F3329; --band-ink: #F3EEE6; --band-muted: #A9C4B3; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; color: var(--ink) }
+h2 { font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem); line-height: 1.1; letter-spacing: -0.02em; font-weight: 700 }
+h3 { font-size: 1.15rem; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em }
+p { margin: 0 }
+a { color: var(--primary) }
+.eyebrow { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent) }
+.lead { font-size: 1.15rem; color: var(--ink-2); max-width: 62ch }
+section { padding-block: clamp(56px, 8vw, 96px) }
+.head { display: grid; gap: 14px; margin-bottom: 40px; max-width: 720px }
+
+/* Cabecera */
+.top { display: flex; align-items: center; gap: 10px; padding-block: 20px; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem }
+.top svg { width: 36px; height: 36px; flex: none }
+.top .tu { color: var(--accent) }
+.top span.badge { margin-left: auto; font-family: var(--font-body); font-weight: 600; font-size: 0.8rem; color: var(--primary); background: var(--primary-tint); padding: 6px 12px; border-radius: 999px }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-block: 40px 72px }
+.hero h1 { font-size: clamp(2.5rem, 1.6rem + 4vw, 4.4rem); line-height: 0.98; letter-spacing: -0.035em; font-weight: 800 }
+.hero h1 em { font-style: normal; color: var(--primary) }
+.hero .txt { display: grid; gap: 22px; min-width: 0 }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none }
+.facts li { font-size: 0.9rem; font-weight: 600; padding: 8px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border) }
+.hero .phones { position: relative; display: flex; justify-content: center; gap: 0; min-height: 420px }
+.hero .phones .phone:first-child { transform: rotate(-4deg) translate(22px, 26px); z-index: 1 }
+.hero .phones .phone:last-child { transform: rotate(3deg) translate(-22px, -6px); z-index: 2 }
+
+.phone { width: 100%; max-width: 250px; border-radius: 34px; padding: 8px; background: var(--frame); box-shadow: 0 24px 48px -24px rgba(34,32,28,.45); flex: none }
+.phone img { display: block; width: 100%; height: auto; border-radius: 27px; aspect-ratio: 390 / 844; object-fit: cover; object-position: top }
+
+/* Problema */
+.problem { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 8px; align-content: start }
+.stat b { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; letter-spacing: -0.03em; color: var(--primary); font-variant-numeric: tabular-nums }
+.stat p { color: var(--ink-2) }
+.stat small { color: var(--muted); font-size: 0.8rem }
+.quote { margin-top: 32px; font-family: var(--font-display); font-size: clamp(1.3rem, 1rem + 1.2vw, 1.75rem); line-height: 1.3; font-weight: 500; max-width: 30ch; color: var(--ink) }
+.quote span { color: var(--accent) }
+
+/* Para quién */
+.band { background: var(--band); color: var(--band-ink) }
+.band h2, .band h3 { color: var(--band-ink) }
+.band .eyebrow { color: var(--band-muted) }
+.band .lead { color: var(--band-muted) }
+.who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+.who article { border: 1px solid rgba(255,255,255,.18); border-radius: var(--r-lg); padding: 28px; display: grid; gap: 14px; align-content: start }
+.who .tag { justify-self: start; font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: var(--bg); color: var(--ink) }
+.who ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--band-muted) }
+.who li::marker { color: var(--band-ink) }
+.plans { margin-top: 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
+.plans div { border-top: 2px solid var(--band-ink); padding-top: 12px; display: grid; gap: 4px; align-content: start }
+.plans span { font-weight: 600 }
+.plans b { font-family: var(--font-display); font-size: clamp(2rem, 1.7rem + 1.4vw, 2.8rem); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums }
+.plans small { color: var(--band-muted); font-size: 0.9rem }
+@media (max-width: 860px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+
+/* Funciones: momentos del alquiler */
+.moments { display: grid; gap: 72px }
+.moment { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; align-items: center }
+.moment:nth-child(even) { grid-template-columns: minmax(0, 1fr) 250px }
+.moment:nth-child(even) .phone { order: 2 }
+.moment .body { display: grid; gap: 14px; min-width: 0 }
+.moment .when { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--accent) }
+.moment ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px }
+.moment li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; color: var(--ink-2) }
+.moment li svg { width: 20px; height: 20px; margin-top: 3px; color: var(--primary) }
+
+/* Galería */
+.strip { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch }
+.strip figure { margin: 0; flex: none; width: 200px; scroll-snap-align: start; display: grid; gap: 10px }
+.strip .phone { max-width: 200px; border-radius: 28px; padding: 6px }
+.strip .phone img { border-radius: 23px }
+.strip figcaption { font-size: 0.85rem; color: var(--muted); text-align: center }
+.strip:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 8px }
+
+/* Constancia */
+.trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+.trust article { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 10px; align-content: start }
+.trust p { color: var(--ink-2) }
+.hash { margin-top: 28px; background: var(--sunken); border-radius: var(--r-md); padding: 20px; overflow-x: auto }
+.hash pre { margin: 0; font: 0.85rem/1.7 ui-monospace, Menlo, Consolas, monospace; color: var(--ink-2); white-space: pre }
+.hash .k { color: var(--accent) }
+.hash .g { color: var(--primary) }
+
+/* Diseño */
+.design { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 16px; align-content: start; min-width: 0 }
+.card p { color: var(--ink-2) }
+.logo-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap }
+.logo-row svg { width: 88px; height: 88px; flex: none }
+.logo-row p { flex: 1 1 200px }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px }
+.sw { display: grid; gap: 6px; font-size: 0.82rem; color: var(--muted) }
+.sw i { display: block; height: 56px; border-radius: 12px; border: 1px solid var(--border) }
+.sw b { color: var(--ink); font-weight: 600 }
+.type-sample { display: grid; gap: 6px }
+.type-sample .d { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.1; letter-spacing: -0.02em }
+.type-sample .b { font-size: 1rem; color: var(--ink-2) }
+.rules { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--ink-2) }
+.span2 { grid-column: 1 / -1 }
+.duo { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start }
+.duo .phone { max-width: 200px; border-radius: 28px; padding: 6px }
+.duo .phone img { border-radius: 23px }
+.duo .txt { flex: 1 1 260px; display: grid; gap: 12px; min-width: 0 }
+
+/* Proceso */
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--border); margin-left: 8px }
+.timeline li { position: relative; padding: 0 0 32px 28px; display: grid; gap: 6px }
+.timeline li::before { content: ""; position: absolute; left: -9px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 3px solid var(--primary) }
+.timeline time { font-weight: 600; font-size: 0.9rem; color: var(--accent); font-variant-numeric: tabular-nums }
+.timeline p { color: var(--ink-2); max-width: 64ch }
+.numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 16px }
+.numbers div { border-top: 2px solid var(--primary); padding-top: 12px; display: grid; gap: 4px }
+.numbers b { font-family: var(--font-display); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums }
+.numbers span { font-size: 0.9rem; color: var(--muted) }
+
+/* Siguiente */
+.next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
+.next article { border-top: 2px solid var(--border); padding-top: 16px; display: grid; gap: 8px; align-content: start }
+.next p { color: var(--ink-2) }
+.ctas { margin-top: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+@media (max-width: 860px) { .ctas { grid-template-columns: minmax(0, 1fr) } }
+.cta { align-content: start; background: var(--primary-tint); border-radius: var(--r-lg); padding: clamp(24px, 4vw, 40px); display: grid; gap: 12px }
+.cta p { color: var(--ink-2); max-width: 60ch }
+.cta__btn { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-weight: 600; text-decoration: none; overflow-wrap: anywhere }
+.cta__btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px }
+.cta__acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.cta__copiar { min-height: 44px; padding: 10px 20px; border-radius: 999px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font: 600 1rem var(--font-body); cursor: pointer }
+.cta__copiar:hover { background: var(--primary-tint) }
+.cta__copiar:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px }
+.cta--ayuda { background: var(--surface); border: 1px solid var(--border) }
+
+footer { padding-block: 32px 48px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 32px }
+  .hero .phones { min-height: 0 }
+  .hero .phone { max-width: 200px }
+  .problem, .next { grid-template-columns: minmax(0, 1fr) }
+  .who, .trust, .design { grid-template-columns: minmax(0, 1fr) }
+  .moment, .moment:nth-child(even) { grid-template-columns: minmax(0, 1fr); gap: 24px }
+  .moment .phone, .moment:nth-child(even) .phone { order: 0; max-width: 220px; justify-self: center }
+  .numbers { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+}
+@media (max-width: 420px) {
+  .hero .phone { max-width: 160px }
+  .hero .phones .phone:first-child { transform: rotate(-4deg) translate(14px, 18px) }
+  .hero .phones .phone:last-child { transform: rotate(3deg) translate(-14px, -4px) }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero .phones .phone { transition: transform .4s ease }
+  .hero .phones:hover .phone:first-child { transform: rotate(-6deg) translate(10px, 30px) }
+  .hero .phones:hover .phone:last-child { transform: rotate(5deg) translate(-10px, -10px) }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ok" viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="marca" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1E4D3A"/><circle cx="27" cy="28" r="6.5" fill="#FBF7F1"/><circle cx="11" cy="28" r="6.5" fill="#FBF7F1"/><circle cx="19" cy="36" r="6.5" fill="#FBF7F1"/><circle cx="19" cy="20" r="6.5" fill="#FBF7F1"/><g transform="translate(19 28) scale(0.77) translate(-24 -24)"><circle cx="24" cy="21.6" r="3.3" fill="#A8432A"/><path d="M22.3 22.5 L25.7 22.5 L26.8 28.6 L21.2 28.6 Z" fill="#A8432A" stroke="#A8432A" stroke-width="1" stroke-linejoin="round"/></g><circle cx="35.5" cy="11" r="4.2" fill="none" stroke="#FBF7F1" stroke-width="2"/><path d="M32.2 13.6 L27.6 17.2 M36.6 14.9 L37.3 17.4" stroke="#FBF7F1" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="37.5" cy="21" r="3" fill="none" stroke="#FBF7F1" stroke-width="2.6"/><path d="M37.5 25 L37.5 37 M37.5 30.5 L41.5 30.5 M37.5 35.5 L40.5 35.5" stroke="#FBF7F1" stroke-width="2.8" stroke-linecap="round" fill="none"/></symbol>
+  </defs>
+</svg>
+
+<header class="wrap top">
+  <svg role="img" aria-label="Logotipo de Tu llavero"><use href="#marca"/></svg>
+  <div><span class="tu">tu</span> llavero</div>
+  <span class="badge">Caso de estudio · 2026</span>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="txt">
+      <p class="eyebrow">Proyecto personal · Producto y diseño</p>
+      <h1>El expediente de tu piso, <em>con pruebas</em> que los dos aceptan.</h1>
+      <p class="lead">Tu llavero es una app web para pisos de alquiler en España. Inquilino y casero comparten un solo sitio donde queda todo lo que pasa en el piso, del acta de entrada a la devolución de la fianza, con fecha, autor y una huella que impide cambiarlo después.</p>
+      <ul class="facts">
+        <li>Para inquilinos y pequeños propietarios</li>
+        <li>Gratis para el inquilino y el primer piso</li>
+        <li>Datos en la UE</li>
+        <li>Sin cookies de terceros</li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="phone"><img src="capturas/03-inicio.webp" alt="Pantalla de inicio con el expediente del piso de la calle Ejemplo 12 y la etiqueta Inquilino" width="390" height="844"></div>
+      <div class="phone"><img src="capturas/04-expediente.webp" alt="Ficha del expediente con renta de 950 euros, fianza de 1.100 euros y accesos a acta, averías, pagos y acuerdos" width="390" height="844"></div>
+    </div>
+  </div>
+
+  <section id="problema">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">El problema</p>
+        <h2>La fianza se pierde por falta de pruebas, no por falta de razón.</h2>
+        <p class="lead">Cuando termina un alquiler, el casero solo puede quedarse parte de la fianza si demuestra daños o impagos. El inquilino solo la recupera entera si demuestra cómo estaba el piso al entrar. Casi nadie guarda esas pruebas a tiempo: viven repartidas entre WhatsApp, el correo y la galería del móvil.</p>
+      </div>
+      <div class="problem">
+        <div class="stat"><b>20,2 %</b><p>de los hogares de España vive de alquiler, unos 4 millones.</p><small>INE, 2025–2026</small></div>
+        <div class="stat"><b>1 mes</b><p>tiene el casero para devolver la fianza desde la entrega de llaves. Si tarda más, debe pagar intereses.</p><small>Ley de Arrendamientos Urbanos</small></div>
+        <div class="stat"><b>47 €/mes</b><p>cuesta, como mínimo, el software de gestión pensado para profesionales. Para un solo piso no compensa.</p><small>Precios publicados por las herramientas del sector</small></div>
+      </div>
+      <p class="quote">El rival no son otras apps. Es <span>WhatsApp y la galería del móvil</span>. Por eso apuntar algo tiene que ser igual de rápido que mandar una foto.</p>
+    </div>
+  </section>
+
+  <section id="para-quien" class="band">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Para quién</p>
+        <h2>Para las dos partes del contrato, sin tomar partido.</h2>
+        <p class="lead">La app es neutral: los dos ven lo mismo y nadie puede borrar lo que añade el otro. El inquilino gana pruebas y el pequeño propietario gana orden.</p>
+      </div>
+      <div class="who">
+        <article>
+          <span class="tag">Inquilino</span>
+          <h3>Quiere recuperar su fianza entera.</h3>
+          <ul>
+            <li>Acta de entrada confirmada por el casero.</li>
+            <li>Averías avisadas con fecha y con el «visto» de la otra parte.</li>
+            <li>Carta de reclamación lista si la fianza no llega.</li>
+            <li>Puede crear el expediente aunque el casero no use la app.</li>
+          </ul>
+        </article>
+        <article>
+          <span class="tag">Pequeño propietario</span>
+          <h3>Tiene pocos pisos y los lleva él mismo.</h3>
+          <ul>
+            <li>Contrato, fianza y número de depósito en un sitio.</li>
+            <li>Constancia de cuándo se avisó de cada avería.</li>
+            <li>Pagos de renta confirmados mes a mes.</li>
+            <li>Acta de salida comparada con la de entrada.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="plans">
+        <div><span>Inquilino</span><b>0 €</b><small>siempre</small></div>
+        <div><span>Primer piso</span><b>0 €</b><small>siempre</small></div>
+        <div><span>Segundo piso</span><b>18 €</b><small>al año</small></div>
+        <div><span>De 3 a 10 pisos</span><b>29 €</b><small>al año, tarifa plana</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="funciones">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Qué hace</p>
+        <h2>Acompaña el alquiler de principio a fin.</h2>
+        <p class="lead">Cada función responde a un momento concreto del contrato, en el orden en que pasan las cosas.</p>
+      </div>
+      <div class="moments">
+        <div class="moment">
+          <div class="phone"><img src="capturas/05-acta.webp" alt="Acta de entrada con cinco estancias y un defecto anotado en la encimera de la cocina" width="390" height="844" loading="lazy"></div>
+          <div class="body">
+            <p class="when">Al entrar</p>
+            <h3>Un acta de entrada que firman los dos.</h3>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Recorrido guiado por estancias, con notas y lecturas de luz, agua y gas.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>La otra parte confirma o deja una objeción con su comentario.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Una invitación por enlace basta para sumar al casero o al inquilino.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="moment">
+          <div class="phone"><img src="capturas/17-incidencia-detalle.webp" alt="Detalle de una avería: gotea el grifo de la cocina, con su constancia y un consejo sobre el seguro" width="390" height="844" loading="lazy"></div>
+          <div class="body">
+            <p class="when">Mientras vives en el piso</p>
+            <h3>Averías, acuerdos y pagos con constancia.</h3>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Avisar de una avería deja fecha, urgencia y cuándo la vio la otra parte.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Los acuerdos («puedes pintar la habitación») quedan por escrito y no se reclaman al salir.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Cada mes se apunta el pago de la renta y el casero lo confirma.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Llamadas y WhatsApps importantes se anotan con su fecha, aunque la otra parte no use la app.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="moment">
+          <div class="phone"><img src="capturas/09-salida.webp" alt="Salida del piso con una lista de seis pasos y el registro de la entrega de llaves" width="390" height="844" loading="lazy"></div>
+          <div class="body">
+            <p class="when">Al salir</p>
+            <h3>La salida y la fianza, sin discusiones.</h3>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Lista de lo que hay que hacer antes de irse y registro de la entrega de llaves.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Acta de salida comparada con la de entrada, diferencia a diferencia.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Cuenta atrás del mes legal para devolver la fianza y carta de reclamación si se pasa.</span></li>
+              <li><svg aria-hidden="true"><use href="#ok"/></svg><span>Todo el expediente se exporta en PDF para una mediación o una reclamación.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pantallas" style="padding-top: 0">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Pantallas</p>
+        <h2>La app tal como funciona hoy.</h2>
+        <p class="lead">Capturas de la versión de prueba, con datos de ejemplo. Desliza para ver más.</p>
+      </div>
+      <div class="strip" tabindex="0" aria-label="Galería de pantallas">
+        <figure><div class="phone"><img src="capturas/00-bienvenida.webp" alt="Bienvenida con el lema El expediente de tu piso" width="390" height="844" loading="lazy"></div><figcaption>Bienvenida</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/02-invitacion.webp" alt="Invitación recibida para unirse al expediente como inquilino" width="390" height="844" loading="lazy"></div><figcaption>Invitación</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/08-acuerdos.webp" alt="Acuerdo pendiente sobre la revisión de la caldera" width="390" height="844" loading="lazy"></div><figcaption>Acuerdos</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/07-pagos.webp" alt="Formulario para avisar del pago de la renta de octubre" width="390" height="844" loading="lazy"></div><figcaption>Pagos de renta</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/10-fianza.webp" alt="Fianza depositada de 1.100 euros en el INCASÒL" width="390" height="844" loading="lazy"></div><figcaption>Mi fianza</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/12-exportar.webp" alt="Exportar el expediente a PDF eligiendo los apartados" width="390" height="844" loading="lazy"></div><figcaption>Exportar en PDF</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/15-guias.webp" alt="Guías sobre la fianza, las reparaciones y la salida" width="390" height="844" loading="lazy"></div><figcaption>Guías sin jerga</figcaption></figure>
+        <figure><div class="phone"><img src="capturas/16-avisos.webp" alt="Lista de avisos del expediente" width="390" height="844" loading="lazy"></div><figcaption>Avisos</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="constancia" style="background: var(--surface)">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Por dentro</p>
+        <h2>Lo importante es la constancia, no las funciones.</h2>
+        <p class="lead">Una prueba solo sirve si nadie la ha podido tocar. Por eso la app se construyó alrededor de un historial que solo crece.</p>
+      </div>
+      <div class="trust">
+        <article><h3>Nada se borra sin rastro</h3><p>Cada cosa importante es un evento con fecha del servidor y autor. Los eventos solo se añaden: se pueden corregir, pero el historial enseña qué cambió y cuándo.</p></article>
+        <article><h3>Una huella por evento</h3><p>Cada evento lleva una huella SHA-256 encadenada con el anterior. Si alguien cambiara una coma, la cadena dejaría de cuadrar.</p></article>
+        <article><h3>Cada uno ve solo lo suyo</h3><p>Las reglas de acceso están en la propia base de datos: solo las dos partes del contrato ven su expediente.</p></article>
+        <article><h3>Privacidad desde el principio</h3><p>Datos alojados en la UE, sin cookies de analítica ni de terceros, entrada con un código de 6 cifras por email y opción de borrar la cuenta desde el perfil.</p></article>
+      </div>
+      <div class="hash" role="img" aria-label="Ejemplo de tres eventos del historial encadenados por su huella">
+<pre><span class="k">#1</span> expediente_creado     <span class="g">huella</span> 9f2c…a41e  ← inicio
+<span class="k">#2</span> invitacion_enviada    <span class="g">huella</span> 4b70…19d3  ← 9f2c…a41e
+<span class="k">#3</span> acta_enviada          <span class="g">huella</span> e1a8…7c05  ← 4b70…19d3
+<span class="k">#4</span> acuerdo_propuesto     <span class="g">huella</span> 0d6b…f2a9  ← e1a8…7c05</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="diseno">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Diseño</p>
+        <h2>Cercano, claro y pensado para el móvil.</h2>
+        <p class="lead">Se diseñaron 43 pantallas antes de escribir código, con un sistema de diseño propio que la app usa tal cual.</p>
+      </div>
+      <div class="design">
+        <div class="card">
+          <h3>Un símbolo que es un llavero</h3>
+          <div class="logo-row">
+            <svg role="img" aria-label="Símbolo de Tu llavero"><use href="#marca"/></svg>
+            <p>Una baldosa hidráulica de Barcelona con la cerradura en el centro y una llave colgando. Se eligió entre seis propuestas: la baldosa habla de casa y la llave, de quien vive en ella.</p>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Dos familias de letra</h3>
+          <div class="type-sample">
+            <span class="d">1.100 € de fianza</span>
+            <span class="b">Bricolage Grotesque para títulos e importes; Figtree para leer. El tono tutea y evita el lenguaje legal.</span>
+          </div>
+        </div>
+        <div class="card span2">
+          <h3>Colores con significado</h3>
+          <div class="swatches">
+            <div class="sw"><i style="background: #1E4D3A"></i><b>Verde</b>Acción principal</div>
+            <div class="sw"><i style="background: #A8432A"></i><b>Terracota</b>Lo que pide atención</div>
+            <div class="sw"><i style="background: #8A4B14"></i><b>Ocre</b>La parte inquilina</div>
+            <div class="sw"><i style="background: #FBF7F1"></i><b>Crema</b>Fondo</div>
+            <div class="sw"><i style="background: #22201C"></i><b>Tinta</b>Texto</div>
+          </div>
+        </div>
+        <div class="card span2">
+          <div class="duo">
+            <div class="phone"><img src="capturas/18-expediente-oscuro.webp" alt="Ficha del expediente en modo oscuro" width="390" height="844" loading="lazy"></div>
+            <div class="txt">
+              <h3>Accesible para cualquiera</h3>
+              <ul class="rules">
+                <li>Contraste de 4,5:1 o más en todo el texto.</li>
+                <li>Botones de 44 px como mínimo, para el dedo.</li>
+                <li>Modo claro y modo oscuro.</li>
+                <li>Revisada a 320 px de ancho y con una prueba automática de accesibilidad.</li>
+                <li>Se instala en el móvil como una app, sin pasar por las tiendas.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="proceso" style="background: var(--surface)">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Proceso</p>
+        <h2>De la idea a una app que funciona, paso a paso.</h2>
+        <p class="lead">Un proyecto personal, hecho fuera del horario de trabajo y sin presupuesto, con Claude Code como compañero de programación. Primero el problema, luego el diseño y al final el código.</p>
+      </div>
+      <ol class="timeline">
+        <li><time>1. Investigar</time><h3>Plan de producto</h3><p>Datos del mercado del alquiler, reglas de la fianza en España, competencia y el alcance de la primera versión. Decisión clave: la salida y la fianza entran desde el primer día, porque es donde el inquilino se juega el dinero.</p></li>
+        <li><time>2. Diseñar</time><h3>43 pantallas y un prototipo</h3><p>Cada pantalla del inquilino y del casero, un sistema de diseño con sus reglas y un prototipo navegable para probar los flujos antes de programar.</p></li>
+        <li><time>3. Construir</time><h3>La app real, función a función</h3><p>Base de datos con reglas de acceso y el historial encadenado, entrada con código, acta, acuerdos, averías y pagos. Después la salida, la fianza, la carta, el PDF, las guías, los avisos y los recordatorios.</p></li>
+        <li><time>4. Revisar</time><h3>Pruebas, accesibilidad y textos legales</h3><p>Recorridos completos de inquilino y casero, revisión en pantallas pequeñas y en modo oscuro, y borradores de privacidad y condiciones pendientes de revisión por un abogado.</p></li>
+      </ol>
+      <div class="numbers">
+        <div><b>43</b><span>pantallas diseñadas</span></div>
+        <div><b>21</b><span>pantallas programadas</span></div>
+        <div><b>14</b><span>cambios en la base de datos</span></div>
+        <div><b>0 €</b><span>gastados hasta hoy</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="siguiente">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Siguiente</p>
+        <h2>Ahora, el lanzamiento.</h2>
+        <p class="lead">La primera versión está terminada y se puede probar con datos de ejemplo. Todavía no tiene usuarios reales. Esto es lo que falta para abrirla.</p>
+      </div>
+      <div class="next">
+        <article><h3>Fotos y emails</h3><p>Guardar las fotos del acta en servidores de la UE y enviar avisos por email a la otra parte.</p></article>
+        <article><h3>Revisión legal</h3><p>Que un abogado revise los textos legales, las guías y el borrado de cuenta antes de abrir la app al público.</p></article>
+        <article><h3>Primeros pisos</h3><p>Probarla con inquilinos y pequeños propietarios de verdad y escuchar qué les falta.</p></article>
+      </div>
+      <div class="ctas">
+      <div class="cta">
+        <h3>¿Alquilas o tienes un piso en alquiler?</h3>
+        <p>Busco a las primeras personas que quieran probar Tu llavero con su piso. Escríbeme a app.tullavero@gmail.com (o por LinkedIn) y te aviso en cuanto abra.</p>
+        <div class="cta__acciones"><a class="cta__btn" href="mailto:app.tullavero@gmail.com">Escribir un email</a><button type="button" class="cta__copiar" data-copiar="app.tullavero@gmail.com">Copiar el correo</button></div>
+      </div>
+      <div class="cta cta--ayuda">
+        <h3>¿Quieres ayudarme a hacerlo realidad?</h3>
+        <p>Tu llavero es un proyecto personal: una idea que quiero llevar a cabo y que hoy construyo solo, en mi tiempo libre. Si te interesa y quieres echar una mano, con diseño, programación, temas legales de la vivienda, difusión o simplemente ideas, cuéntamelo y lo hablamos.</p>
+        <p>Escríbeme a <b>app.tullavero@gmail.com</b>.</p>
+        <div class="cta__acciones"><a class="cta__btn" href="mailto:app.tullavero@gmail.com?subject=Quiero%20ayudar%20con%20Tu%20llavero">Quiero ayudar</a><button type="button" class="cta__copiar" data-copiar="app.tullavero@gmail.com">Copiar el correo</button></div>
+      </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Tu llavero · Proyecto personal de Bernat · 2026 · <a href="mailto:app.tullavero@gmail.com">app.tullavero@gmail.com</a></span>
+    <span>Capturas de la versión de prueba con datos de ejemplo.</span>
+  </div>
+</footer>
+<script>
+// Copiar el correo: sirve aunque el navegador no abra el programa de correo (por ejemplo, dentro de una vista previa).
+document.querySelectorAll('[data-copiar]').forEach((b) => b.addEventListener('click', async () => {
+  const texto = b.dataset.copiar
+  let ok = false
+  try { await navigator.clipboard.writeText(texto); ok = true } catch {
+    const t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0'
+    document.body.append(t); t.select(); try { ok = document.execCommand('copy') } catch {} t.remove()
+  }
+  b.textContent = ok ? 'Copiado' : texto
+  if (ok) setTimeout(() => (b.textContent = 'Copiar el correo'), 2500)
+}))
+</script>
